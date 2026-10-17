@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio</title>
+<meta name="description" content="Portfolio de Marceau COTTIN, étudiant ingénieur interessé par la mécatronique et les énergies.">
+
+<style>
+  :root {
+    --fond:   #fbfbfc;
+    --encre:  #0e1116;
+    --doux:   #5b6270;
+    --filet:  #d3d7de;
+    --accent: #2b6e55;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+
+    --gouttiere: 3rem;   /* distance entre l'axe et les cartes */
+    --respiration: 2.25rem;
+    --grille-fine:  rgba(43, 110, 85, .07);
+    --grille-nette: rgba(43, 110, 85, .13);
+    --maille: 24px;
+
+    --axe: 3px;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+
+  html { scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; }
+  html.fige { overflow: hidden; }
+
+  body {
+    margin: 0;
+    background-color: var(--fond);
+    background-image:
+      linear-gradient(var(--grille-nette) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grille-nette) 1px, transparent 1px),
+      linear-gradient(var(--grille-fine) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grille-fine) 1px, transparent 1px);
+    background-size:
+      calc(var(--maille) * 5) calc(var(--maille) * 5),
+      calc(var(--maille) * 5) calc(var(--maille) * 5),
+      var(--maille) var(--maille),
+      var(--maille) var(--maille);
+    background-position: center top;
+    color: var(--encre);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ───────── En-tête ───────── */
+  .entete {
+    padding: clamp(4rem, 14vh, 9rem) 1.5rem 0;
+    text-align: center;
+  }
+  .entete h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .entete p {
+    max-width: 33rem;
+    margin: 1.5rem auto 0;
+    color: var(--doux);
+    font-size: 1.0625rem;
+  }
+
+  /* ───────── Frise ───────── */
+  .frise {
+    position: relative;
+    max-width: 1040px;
+    margin: clamp(3rem, 8vh, 5rem) auto 0;
+    padding: 0 1.5rem clamp(5rem, 14vh, 9rem);
+    list-style: none;
+  }
+  .frise::before {            /* l'axe */
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 50%;
+    width: var(--axe);
+    background: linear-gradient(to bottom, transparent, var(--filet) 4rem, var(--filet) calc(100% - 6rem), transparent);
+    transform: translateX(-50%);
+  }
+
+  .projet {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: var(--respiration) 0;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2, .7, .2, 1);
+  }
+  .projet.vu { opacity: 1; transform: none; }
+
+  .projet::before {           /* le nœud sur l'axe */
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(var(--respiration) + var(--cy, .75rem));
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--filet);   /* rond plein, même gris que la frise */
+    transform: translate(-50%, -50%);
+    transition: background-color .3s ease;
+    z-index: 1;
+  }
+  .projet::after {            /* le petit trait vers la carte */
+    content: "";
+    position: absolute;
+    top: calc(var(--respiration) + var(--cy, .75rem));
+    width: calc(var(--gouttiere) * 2 - .4rem);
+    height: var(--axe, 3px);
+    margin-top: calc(var(--axe, 3px) / -2);
+    --sens: to right;         /* le fondu se fait côté date */
+    background: var(--filet);
+    /* fondu par masque : la couleur reste unie, seule l'opacité varie */
+    -webkit-mask-image: linear-gradient(var(--sens), #000 calc(100% - 1.6rem), transparent);
+            mask-image: linear-gradient(var(--sens), #000 calc(100% - 1.6rem), transparent);
+    transition: background-color .3s ease;
+    z-index: 0;               /* sous le rond, il passe par son centre */
+  }
+  /* de la carte, à travers l'axe, jusqu'à la date de l'autre côté */
+  .projet:nth-child(odd)::after  { left: calc(50% - var(--gouttiere)); }
+  .projet:nth-child(even)::after { left: calc(50% - var(--gouttiere) + .4rem); }
+  .projet:has(.carte:hover)::before { background: var(--accent); }
+  .projet:has(.carte:hover)::after  { background: var(--accent); }
+  .projet:nth-child(even)::after { --sens: to left; }
+  .projet:has(.carte:hover) .date { color: var(--accent); }
+
+  .date {
+    align-self: start;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--doux);
+    font-variant-numeric: tabular-nums;
+    transition: color .3s ease;
+  }
+
+  .carte {
+    appearance: none;
+    justify-self: stretch;
+    align-self: start;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .carte:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
+
+  .vignette {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: #e7e9ee;
+    border: 1px solid var(--filet);
+  }
+  .vignette img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform .9s cubic-bezier(.2, .7, .2, 1);
+  }
+  .carte:hover .vignette img { transform: scale(1.035); }
+
+  .titre {
+    display: block;
+    margin-top: 1rem;
+    font-family: var(--serif);
+    font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    transition: color .3s ease;
+  }
+  /* au survol de la carte : le titre passe en couleur d'accent */
+  .carte:hover .titre { color: var(--accent); }
+
+  /* alternance gauche / droite */
+  .projet:nth-child(odd) .carte  { grid-column: 1; grid-row: 1; margin-right: var(--gouttiere); }
+  .projet:nth-child(odd) .date   { grid-column: 2; grid-row: 1; margin-left:  var(--gouttiere); text-align: left; }
+  .projet:nth-child(even) .carte { grid-column: 2; grid-row: 1; margin-left:  var(--gouttiere); }
+  .projet:nth-child(even) .date  { grid-column: 1; grid-row: 1; margin-right: var(--gouttiere); text-align: right; }
+
+  /* tags affichés en face de l'image (PC uniquement) */
+  .tags { display: none; }
+  @media (min-width: 781px) {
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      align-self: start;
+      margin: calc(1.5rem + .9rem) 0 0;
+      padding: 0;
+      list-style: none;
+      max-width: 20rem;      /* largeur max : règle le nombre de tags avant retour à la ligne */
+    }
+    .tags li {
+      font-size: .68rem; padding: .25rem .7rem;
+      opacity: .6;
+      transition: opacity .3s ease, transform .3s ease, box-shadow .3s ease;
+    }
+    /* sans survol possible (tactile pur) : tags pleinement visibles */
+    @media (hover: none) { .tags li { opacity: 1; } }
+    /* au survol de la carte (souris ou stylet) ou au focus clavier : tous les tags se soulèvent ensemble */
+    .projet:has(.carte:hover) .tags li,
+    .projet:has(.carte:focus-visible) .tags li {
+      opacity: 1;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px -3px rgba(14, 17, 22, .25);
+    }
+    /* au survol de la carte ou au focus clavier : la date se met en gras */
+    .date { transition: color .3s ease, font-weight .3s ease; }
+    .projet:has(.carte:hover) .date,
+    .projet:has(.carte:focus-visible) .date { font-weight: 700; }
+    .projet:nth-child(odd)  .tags { grid-column: 2; grid-row: 1; margin-left: var(--gouttiere); }
+    .projet:nth-child(even) .tags { grid-column: 1; grid-row: 1; margin-right: var(--gouttiere); justify-content: flex-end; justify-self: end; }
+  }
+
+  .vide {
+    padding: 3rem 0;
+    text-align: center;
+    color: var(--doux);
+    font-size: .95rem;
+  }
+
+  /* ───────── Aperçu détaillé ───────── */
+  .apercu {
+    width: min(780px, calc(100vw - 2rem));
+    max-height: min(88vh, 920px);
+    padding: 0;
+    border: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: var(--fond);
+    color: var(--encre);
+    box-shadow: 0 40px 90px -30px rgba(14, 17, 22, .45);
+  }
+  .apercu:focus { outline: none; }
+  .apercu[open] { animation: entree .35s cubic-bezier(.2, .7, .2, 1); }
+  .apercu::backdrop { background: rgba(14, 17, 22, .62); animation: fondu .35s ease; }
+  @keyframes entree { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes fondu  { from { opacity: 0; } to { opacity: 1; } }
+
+  .fermer {
+    position: sticky;
+    top: .75rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.25rem; height: 2.25rem;
+    margin: .75rem .75rem -3rem auto;
+    padding: 0;
+    border: 1px solid var(--filet);
+    background: var(--fond);
+    color: var(--encre);
+    cursor: pointer;
+    transition: color .2s, border-color .2s;
+  }
+  .fermer:hover { color: var(--accent); border-color: var(--accent); }
+  .fermer:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .ap-visuel {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #e7e9ee;
+  }
+  .ap-visuel img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  .ap-corps { padding: clamp(1.5rem, 4vw, 2.75rem); }
+  .ap-meta {
+    margin: 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--doux);
+  }
+  .apercu h2 {
+    margin: .5rem 0 1.25rem;
+    text-align: center;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .ap-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .45rem;
+    margin: 0 0 2rem;
+    padding: 0;
+    list-style: none;
+  }
+  .ap-tags li, .tags li {
+    padding: .3rem .8rem;
+    border-radius: 999px;
+    background: #dcebe3;
+    color: #1f5a42;
+    font-family: var(--mono);
+    font-size: .72rem;
+    line-height: 1.3;
+    letter-spacing: .02em;
+  }
+  .ap-tags li:nth-child(6n+2), .tags li:nth-child(6n+2) { background: #f1e6cf; color: #7a5a14; }
+  .ap-tags li:nth-child(6n+3), .tags li:nth-child(6n+3) { background: #f0dcd3; color: #8a4326; }
+  .ap-tags li:nth-child(6n+4), .tags li:nth-child(6n+4) { background: #dbe5ec; color: #2f5470; }
+  .ap-tags li:nth-child(6n+5), .tags li:nth-child(6n+5) { background: #e6dcea; color: #5e3f6e; }
+  .ap-tags li:nth-child(6n),   .tags li:nth-child(6n)   { background: #e4e8d3; color: #55621f; }
+  .ap-texte p {
+    max-width: 62ch;
+    margin: 0 auto 1rem;
+    text-align: justify;
+    text-align-last: left;
+    hyphens: auto;
+    color: #2a2f3a;
+    line-height: 1.7;
+  }
+  .ap-texte p:last-child { margin-bottom: 0; }
+
+  .ap-figure {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  .ap-figure img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    background: #e7e9ee;
+  }
+  .ap-figure figcaption {
+    max-width: 52ch;
+    margin: .8rem auto 0;
+    color: var(--doux);
+    font-size: .875rem;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* ───────── PC : affichage un peu plus dense ───────── */
+  @media (min-width: 781px) {
+    :root { --respiration: 2.4rem; --gouttiere: 2.5rem; }
+    .entete { padding-top: clamp(3rem, 10vh, 6rem); }
+    .frise { margin-top: clamp(2rem, 5vh, 3.5rem); padding-bottom: clamp(3rem, 9vh, 6rem); }
+    .titre { margin-top: .75rem; }
+  }
+
+  /* ───────── Petits écrans ───────── */
+  @media (max-width: 780px) {
+    :root { --gouttiere: 1.5rem; }
+    .frise { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .frise::before { left: calc(1.25rem + 5px); }
+
+    .projet { display: block; padding-left: 2.25rem; --cy: calc(.75rem + 2px); }  /* milieu réel du texte de la date */
+    .projet::before { left: 5px; }
+    .projet:nth-child(odd)::after,
+    .projet:nth-child(even)::after { left: 5px; right: auto; width: calc(2.25rem - 5px - .4rem); }
+    .projet::after {
+      -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1rem), transparent);
+              mask-image: linear-gradient(to right, #000 calc(100% - 1rem), transparent);
+    }
+
+    .projet .date,
+    .projet:nth-child(odd) .date,
+    .projet:nth-child(even) .date { margin: 0 0 .75rem; text-align: left; }
+    .projet .carte,
+    .projet:nth-child(odd) .carte,
+    .projet:nth-child(even) .carte { margin: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .projet { opacity: 1; transform: none; transition: none; }
+    .tags li { transition: none; transform: none !important; }
+    .date { transition: none; }
+    .vignette img, .titre { transition: none; }
+    .apercu[open], .apercu::backdrop { animation: none; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- EN-TÊTE -->
+<header class="entete">
+  <h1>Marceau COTTIN</h1>
+  <p>Étudiant ingénieur passionné par la mécatronique et les énergies. J'aime concevoir et prototyper des systèmes où mécanique, électronique et logiciel travaillent ensemble.</p>
+</header>
+
+<main>
+  <ol class="frise" id="frise" aria-label="Projets"></ol>
+</main>
+
+<dialog class="apercu" id="apercu" aria-labelledby="ap-titre" tabindex="-1">
+  <button class="fermer" type="button" aria-label="Fermer">
+    <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11" fill="none" stroke="currentColor" stroke-width="1.25"/></svg>
+  </button>
+  <div class="ap-visuel"><img alt=""></div>
+  <div class="ap-corps">
+    <p class="ap-meta"></p>
+    <h2 id="ap-titre"></h2>
+    <ul class="ap-tags"></ul>
+    <div class="ap-texte"></div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ───────── Réglages ───────── */
+  const RECENT_EN_PREMIER = true;   // false : du plus ancien au plus récent
+  const NB_MAX_PROJETS    = 99;
+
+  /* ───────── Collecte des projets ─────────
+     Chaque fichier projects/projet-NN.js appelle ajouterProjet({...}).
+     Le chargement s'arrête au premier numéro manquant. */
+  const projets = [];
+  window.ajouterProjet = (p) => { projets.push(p); };
+
+  const frise  = document.getElementById('frise');
+  const apercu = document.getElementById('apercu');
+  const ap = {
+    visuel: apercu.querySelector('.ap-visuel'),
+    image:  apercu.querySelector('.ap-visuel img'),
+    meta:   apercu.querySelector('.ap-meta'),
+    titre:  apercu.querySelector('h2'),
+    tags:   apercu.querySelector('.ap-tags'),
+    texte:  apercu.querySelector('.ap-texte'),
+  };
+
+  let liste = [];
+  let boutons = [];
+  let courant = -1;
+
+  /* ───────── Utilitaires ───────── */
+  const el = (tag, classe, texte) => {
+    const n = document.createElement(tag);
+    if (classe) n.className = classe;
+    if (texte) n.textContent = texte;
+    return n;
+  };
+
+  const estDate  = (s) => /^\d{4}(-\d{2}){0,2}$/.test(String(s));
+  const horodate = (s) => {
+    if (!estDate(s)) return 0;
+    const [a, m = 1, j = 1] = String(s).split('-').map(Number);
+    return Date.UTC(a, m - 1, j);
+  };
+  const formater = (s) => {
+    if (!estDate(s)) return String(s);
+    const n = String(s).split('-').length;
+    const options = n === 1 ? { year: 'numeric' }
+                  : n === 2 ? { month: 'long', year: 'numeric' }
+                  :           { day: 'numeric', month: 'long', year: 'numeric' };
+    return new Intl.DateTimeFormat('fr-FR', { ...options, timeZone: 'UTC' }).format(horodate(s));
+  };
+
+  /* ───────── Apparition au défilement ───────── */
+  const observateur = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entrees) => {
+        entrees.forEach((e) => {
+          if (e.isIntersecting) { e.target.classList.add('vu'); observateur.unobserve(e.target); }
+        });
+      }, { rootMargin: '0px 0px -6% 0px' })
+    : null;
+
+  /* ───────── Construction de la frise ───────── */
+  function creer(p, i) {
+    const li = el('li', 'projet');
+
+    const date = el('time', 'date', p.date ? formater(p.date) : '');
+    if (estDate(p.date)) date.dateTime = p.date;
+
+    const bouton = el('button', 'carte');
+    bouton.type = 'button';
+
+    const vignette = el('span', 'vignette');
+    if (p.image) {
+      const img = new Image();
+      img.src = p.image;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.onerror = () => img.remove();
+      vignette.append(img);
+    }
+    bouton.append(vignette, el('span', 'titre', p.titre));
+    bouton.addEventListener('click', () => ouvrir(i));
+
+    li.append(date, bouton);
+    if (p.tags && p.tags.length) {
+      const ul = el('ul', 'tags');
+      ul.setAttribute('aria-label', 'Tags');
+      p.tags.forEach((t) => ul.append(el('li', null, t)));
+      li.append(ul);
+    }
+    boutons[i] = bouton;
+    observateur ? observateur.observe(li) : li.classList.add('vu');
+    return li;
+  }
+
+  function afficher() {
+    const sens = RECENT_EN_PREMIER ? -1 : 1;
+    liste = projets
+      .filter((p) => p && p.titre)
+      .sort((a, b) => sens * (horodate(a.date) - horodate(b.date)));
+    boutons = [];
+
+    if (!liste.length) {
+      frise.replaceChildren(el('li', 'vide', 'Aucun projet trouvé dans le dossier « projects ».'));
+      return;
+    }
+    frise.replaceChildren(...liste.map(creer));
+  }
+
+  /* ───────── Aperçu détaillé ───────── */
+  function bloc(b) {
+    if (typeof b === 'string') return b ? el('p', null, b) : null;
+    if (!b || !b.image) return null;
+
+    const fig = el('figure', 'ap-figure');
+    const img = new Image();
+    img.src = b.image;
+    img.alt = b.legende || '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.onerror = () => fig.remove();
+    if (b.taille != null) {
+      img.style.width = typeof b.taille === 'number' ? `${b.taille}%` : b.taille;
+    }
+    fig.append(img);
+    if (b.legende) fig.append(el('figcaption', null, b.legende));
+    return fig;
+  }
+
+  function remplir(p) {
+    ap.titre.textContent = p.titre;
+    ap.meta.textContent  = [p.date && formater(p.date), p.contexte].filter(Boolean).join('  ·  ');
+    ap.meta.hidden       = !ap.meta.textContent;
+
+    const tags = p.tags || [];
+    ap.tags.replaceChildren(...tags.map((t) => el('li', null, t)));
+    ap.tags.hidden = !tags.length;
+
+    const paragraphes = Array.isArray(p.description)
+      ? p.description
+      : String(p.description || '').split(/\n\s*\n/);
+    ap.texte.replaceChildren(...paragraphes.map(bloc).filter(Boolean));
+
+    ap.visuel.hidden = !p.image;
+    if (p.image) { ap.image.src = p.image; ap.image.alt = p.titre; }
+  }
+
+  function ouvrir(i) {
+    courant = i;
+    remplir(liste[i]);
+    if (!apercu.open) {
+      apercu.showModal();
+      document.documentElement.classList.add('fige');
+    }
+    apercu.scrollTop = 0;
+    apercu.focus({ preventScroll: true });
+  }
+
+  ap.image.onerror = () => { ap.visuel.hidden = true; };
+  apercu.querySelector('.fermer').addEventListener('click', () => apercu.close());
+  apercu.addEventListener('click', (e) => { if (e.target === apercu) apercu.close(); });
+  apercu.addEventListener('close', () => {
+    document.documentElement.classList.remove('fige');
+    const b = boutons[courant];
+    if (b) { b.focus({ preventScroll: true }); b.scrollIntoView({ block: 'nearest' }); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!apercu.open) return;
+    if (e.key === 'ArrowRight' && courant < liste.length - 1) ouvrir(courant + 1);
+    if (e.key === 'ArrowLeft'  && courant > 0)                ouvrir(courant - 1);
+  });
+
+  /* ───────── Chargement séquentiel des fichiers projet ───────── */
+  function charger(n) {
+    if (n > NB_MAX_PROJETS) return afficher();
+    const avant  = projets.length;
+    const script = document.createElement('script');
+    script.src = `projects/projet-${String(n).padStart(2, '0')}.js`;
+    script.onload  = () => { script.remove(); projets.length > avant ? charger(n + 1) : afficher(); };
+    script.onerror = () => { script.remove(); afficher(); };
+    document.head.append(script);
+  }
+  charger(1);
+})();
+</script>
+</body>
+</html>
